@@ -26,9 +26,17 @@ project.tracks = [
   ['局内玩法','#64d6c2'], ['局外系统','#e7ad68'], ['关卡','#a99aef'],
   ['IAA','#f78897'], ['加载及教程','#7fb6f0']
 ].map(([name,color]) => ({id:uid(), name, color}));
+const levelLabels = new Set();
 project.markers = data.events.map(({time,track,text,evidence}, index) => {
   const target = project.tracks.find(t => t.name === track);
   if (!target || typeof evidence !== 'string' || !evidence.trim()) throw Error('Invalid track or missing evidence at event '+index);
+  if (track === '关卡') {
+    if (typeof text !== 'string' || !/^第(0|[1-9][0-9]*)关$/u.test(text) || text !== text.trim()) {
+      throw Error(`事件 ${index} 的关卡正文应为“第N关”，识别依据请写入 evidence。`);
+    }
+    if (levelLabels.has(text)) throw Error(`事件 ${index} 重复标注了${text}，每个关号只保留首次可辨认的标记。`);
+    levelLabels.add(text);
+  }
   return {id:uid(), clipId:clip.id, trackId:target.id, time, text};
 }).sort((a,b) => a.time-b.time);
 validateProject(project);
