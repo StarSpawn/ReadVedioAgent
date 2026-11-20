@@ -1,0 +1,8 @@
+/work/
+/outputs/
+__pycache__/
+*.mp4
+*.mov
+*.webm
+*.replay
+*.xlsx

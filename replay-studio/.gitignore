@@ -1,0 +1,7 @@
+node_modules/
+test-results/
+artifacts/
+*.tar.gz
+*.log
+*.replay
+*.xlsx

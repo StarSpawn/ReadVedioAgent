@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#13171d"><meta name="description" content="帧迹，面向游戏调研的本地视频多轨标注工作台。">
+  <title>帧迹 · 游戏录屏研究台</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect width='40' height='40' rx='10' fill='%2364d6c2'/%3E%3Cpath d='M11 11h8v4h-4v10h4v4h-8zm18 0v18h-8v-4h4V15h-4v-4z' fill='%2313171d'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="./" aria-label="帧迹首页"><span class="brand-icon">[<i></i>]</span><strong>帧迹</strong><span class="brand-en">FRAME TRACE</span></a>
+    <span class="header-divider"></span><input id="project-name" aria-label="项目名称" value="未命名研究" maxlength="100">
+    <span id="save-status" class="save-status">本地工作台</span>
+    <nav class="header-actions"><button id="new-project">新建</button><button id="open-project">打开工程</button><button id="save-project" class="outlined">保存工程 <kbd>Ctrl S</kbd></button><button id="export" class="primary">导出 Excel <span>↗</span></button></nav>
+  </header>
+  <div id="draft-banner" class="banner" hidden><span>找到上次的自动备份。恢复后可重新关联原视频。</span><button id="restore-draft">恢复进度</button><button id="dismiss-draft" aria-label="关闭恢复提示">×</button></div>
+  <main>
+    <section class="workspace">
+      <aside class="library">
+        <div class="panel-heading"><h2>视频素材 <span id="clip-count" class="count">0</span></h2><button id="import-small" class="icon-button" title="导入视频" aria-label="导入视频">＋</button></div>
+        <p class="muted small library-note">拖动片段调整时间轴顺序</p>
+        <div id="clip-list" class="clip-list"></div>
+        <button id="import-video" class="import-button"><span>＋</span> 导入视频</button>
+        <button id="relink" class="link-button" hidden>↻ 重新关联缺失视频</button>
+        <div class="library-footer"><span class="status-dot"></span><div>视频仅在本机处理<small>支持浏览器可解码的 MP4 / WebM / MOV</small></div></div>
+      </aside>
+      <section class="viewer-panel">
+        <div class="viewer-heading"><span><span class="tiny-square"></span> 画面预览</span><span id="active-clip-name" class="muted">等待导入素材</span></div>
+        <div id="preview" class="preview">
+          <video id="video" preload="auto" playsinline></video>
+          <div id="empty-preview" class="empty-preview">
+            <div class="film-icon"><span>▶</span></div><h1>每一个瞬间，都有迹可循</h1><p>导入游戏录屏，沿着时间轴记录你的观察</p><button id="import-hero" class="primary">＋ 导入第一段录屏</button><small>也可以直接把视频拖到这里</small>
+          </div>
+          <div id="missing-preview" class="missing-preview" hidden><span>↻</span><h3>视频需要重新关联</h3><p id="missing-name"></p><button id="relink-preview" class="outlined">选择原视频</button></div>
+          <div id="video-badge" class="video-badge" hidden>本地素材</div>
+        </div>
+        <div class="transport">
+          <div class="transport-time"><input id="seek-time" aria-label="跳转到时间" value="00:00:00.000" title="输入时:分:秒.毫秒，回车跳转"><span>/ <span id="total-time">00:00:00</span></span></div>
+          <div class="playback-buttons"><button id="prev-frame" title="上一帧（←）" aria-label="上一帧">Ⅰ◂</button><button id="play" class="play-button" title="播放 / 暂停（空格）" aria-label="播放">▶</button><button id="next-frame" title="下一帧（→）" aria-label="下一帧">▸Ⅰ</button></div>
+          <div class="playback-settings"><select id="playback-rate" aria-label="播放速度"><option value="0.25">0.25×</option><option value="0.5">0.5×</option><option value="1" selected>1×</option><option value="1.5">1.5×</option><option value="2">2×</option></select><button id="mute" aria-label="静音" title="静音">声音 开</button><button id="mark-current" class="outlined">＋ 打标 <kbd>M</kbd></button></div>
+        </div>
+        <div class="viewer-footnote"><span id="frame-info">逐帧步进 · 导入后可设置片段 FPS</span><span><kbd>Space</kbd> 播放 <kbd>←</kbd><kbd>→</kbd> 逐帧 <kbd>M</kbd> 打标</span></div>
+      </section>
+      <aside class="inspector">
+        <div class="panel-heading"><h2>标记记录 <span id="marker-count" class="count">0</span></h2><span class="live-label">研究笔记</span></div>
+        <div id="marker-editor" class="marker-editor">
+          <div class="editor-title"><span id="editor-mode">在当前时间打标</span><button id="cancel-edit" class="link-button" hidden>取消编辑</button></div>
+          <div class="field"><label for="marker-track">所属轨道</label><select id="marker-track"></select></div>
+          <div class="field"><label for="marker-at">全局时间</label><input id="marker-at" value="00:00:00.000" aria-label="标记全局时间"></div>
+          <div class="field"><label for="marker-text">观察内容</label><textarea id="marker-text" maxlength="30000" placeholder="记录操作、反馈或值得关注的细节…"></textarea></div>
+          <button id="save-marker" class="primary full">＋ 添加标记</button>
+          <button id="delete-editing-marker" class="outlined full" style="color:#edac99" hidden>删除标记</button>
+          <p id="marker-save-hint" class="muted micro" role="status">Ctrl / ⌘ + Enter 保存标记</p>
+        </div>
+        <div class="note-list-heading"><span>全部记录</span><input id="search-markers" aria-label="搜索标记" placeholder="搜索内容…"></div>
+        <div id="marker-list" class="marker-list"></div>
+      </aside>
+    </section>
+    <section class="timeline-panel">
+      <div class="timeline-toolbar"><div class="timeline-title"><h2>研究时间轴</h2><span class="muted small" id="timeline-summary">0 段视频 · 3 条轨道</span></div><div class="timeline-actions"><button id="undo" title="撤销 Ctrl+Z" aria-label="撤销">↶</button><button id="redo" title="重做 Ctrl+Shift+Z" aria-label="重做">↷</button><span class="toolbar-divider"></span><button id="fit-timeline">适应</button><button id="zoom-out" aria-label="缩小时间轴">−</button><input id="zoom" type="range" min="0" max="100" value="20" aria-label="时间轴缩放"><button id="zoom-in" aria-label="放大时间轴">＋</button></div></div>
+      <div id="timeline-scroll" class="timeline-scroll"><div id="timeline-grid" class="timeline-grid"></div></div>
+      <footer class="timeline-footer"><span><i class="status-dot"></i> <span id="bottom-status">准备就绪</span></span><span>单击定位 · 双击轨道打标 · 拖动播放头精细浏览</span></footer>
+    </section>
+  </main>
+  <input type="file" id="video-input" accept="video/*,.mkv,.mov,.mp4,.webm,.m4v" multiple hidden>
+  <input type="file" id="relink-input" accept="video/*,.mkv,.mov,.mp4,.webm,.m4v" multiple hidden>
+  <input type="file" id="project-input" accept=".replay" hidden>
+  <dialog id="modal"><div id="modal-content"></div></dialog>
+  <div id="toast" class="toast" role="status" hidden></div>
+  <script type="module" src="./app.js"></script>
+</body>
+</html>
